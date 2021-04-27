@@ -1,6 +1,6 @@
 # solo
 
-SoloDeploy is a CLI tool to initiate and facilitate the flow of deployable artifacts between environments. It implements a basic GitOps inspired CI/CD process to promote and deploy code committing to Git repositories called Manifests.
+SoloDeploy is a CLI tool to initiate and facilitate the flow of deployable artifacts between environments. It implements a basic GitOps inspired CI/CD process to promote and deploy code by committing to Git repositories called Manifests.
 
 ## Getting started with the source code
 
