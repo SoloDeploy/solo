@@ -20,7 +20,7 @@ jobs:
 
 
       - name: Build Windows
-        run: env GOOS=windows GOARCH=amd64 go build -o solo.linux-amd64.exe
+        run: env GOOS=windows GOARCH=amd64 go build -o solo.win-amd64.exe
       - name: Build Mac
         run: env GOOS=darwin GOARCH=amd64 go build -o solo.darwin-amd64
       - name: Build Linux

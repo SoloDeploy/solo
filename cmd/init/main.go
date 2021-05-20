@@ -1,6 +1,7 @@
 package init
 
 import (
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -13,7 +14,11 @@ func NewCmdInit() *cobra.Command {
 		Short: "Initialize my local environment with all manner of magical things",
 		Long:  `Initialize local environment`,
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Help()
+			err := handler()
+			if err != nil {
+				log.Printf("Error initialising SoloDeploy project environment: %v", err)
+				os.Exit(1)
+			}
 			os.Exit(0)
 		},
 	}

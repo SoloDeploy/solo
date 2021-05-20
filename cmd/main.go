@@ -1,4 +1,4 @@
-package solo
+package cmd
 
 import (
 	"fmt"
@@ -61,5 +61,6 @@ func initConfig() {
 
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using configuration file: ", viper.ConfigFileUsed())
+		fmt.Println("foo: ", viper.Get("foo"))
 	}
 }

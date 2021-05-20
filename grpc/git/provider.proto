@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package git;
+option go_package = "./;git";
+
+message GetRepositoryNamesRequest {}
+// message GetRepositoryNamesResponse {
+//   string name = 1;
+// }
+message GetRepositoryNamesResponse {
+  repeated string names = 1;
+}
+
+service GitProvider {
+  // rpc GetRepositoryNames(GetRepositoryNamesRequest) returns (stream GetRepositoryNamesResponse);
+  rpc GetRepositoryNames(GetRepositoryNamesRequest) returns (GetRepositoryNamesResponse);
+}
+
+
+
