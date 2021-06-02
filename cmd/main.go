@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/SoloDeploy/solo/cmd/build"
 	"github.com/SoloDeploy/solo/cmd/create"
@@ -16,12 +14,13 @@ import (
 	"github.com/SoloDeploy/solo/cmd/promote"
 	"github.com/SoloDeploy/solo/cmd/publish"
 	"github.com/SoloDeploy/solo/cmd/verify"
+	"github.com/SoloDeploy/solo/core/configuration"
 )
 
 var configFile string
 
 // NewCmdSolo Go away linter
-func NewCmdSolo() *cobra.Command {
+func NewCmdSolo(configuration *configuration.Configuration) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:                   "solo",
 		DisableFlagsInUseLine: true,
@@ -38,29 +37,11 @@ func NewCmdSolo() *cobra.Command {
 	rootCmd.AddCommand(create.NewCmdCreate())
 	rootCmd.AddCommand(deploy.NewCmdDeploy())
 	rootCmd.AddCommand(destroy.NewCmdDestroy())
-	rootCmd.AddCommand(initcmd.NewCmdInit())
+	rootCmd.AddCommand(initcmd.NewCmdInit(configuration))
 	rootCmd.AddCommand(install.NewCmdInstall())
 	rootCmd.AddCommand(promote.NewCmdPromote())
 	rootCmd.AddCommand(publish.NewCmdPublish())
 	rootCmd.AddCommand(verify.NewCmdVerify())
 
 	return rootCmd
-}
-
-func init() {
-	cobra.OnInitialize(initConfig)
-}
-
-func initConfig() {
-	configFile = ".solo.yml"
-	viper.SetConfigType("yaml")
-	viper.SetConfigFile(configFile)
-
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("SOLO")
-
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using configuration file: ", viper.ConfigFileUsed())
-		fmt.Println("foo: ", viper.Get("foo"))
-	}
 }

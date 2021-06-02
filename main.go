@@ -1,17 +1,25 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
-	solo "github.com/SoloDeploy/solo/cmd"
+	"github.com/SoloDeploy/solo/cmd"
+	"github.com/SoloDeploy/solo/core/configuration"
+	"github.com/SoloDeploy/solo/core/output"
 )
 
 func main() {
-	command := solo.NewCmdSolo()
+	configuration, err := configuration.LoadConfiguration()
+	if err != nil {
+		output.PrintError(err)
+		os.Exit(1)
+	}
+	// TODO: register dependency in inject object graph instead of passing it down the execution tree
+
+	command := cmd.NewCmdSolo(configuration)
 
 	if err := command.Execute(); err != nil {
-		fmt.Println(err)
+		output.PrintError(err)
 		os.Exit(1)
 	}
 }

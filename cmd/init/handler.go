@@ -3,11 +3,13 @@ package init
 import (
 	"log"
 
-	"github.com/SoloDeploy/solo/providers"
+	"github.com/SoloDeploy/solo/core/configuration"
+	"github.com/SoloDeploy/solo/core/providers"
 )
 
-func handler() (err error) {
-	gitProvider, err := providers.NewGitProvider()
+func handler(configuration *configuration.Configuration) (err error) {
+	providers.InitialiseProviders(configuration)
+	gitProvider, err := providers.NewGitProvider(configuration)
 	if err != nil {
 		return
 	}
