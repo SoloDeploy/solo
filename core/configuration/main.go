@@ -10,20 +10,26 @@ import (
 )
 
 type ProviderConfiguration struct {
-	Provider      string            `yaml:"provider"`
-	Options       map[string]string `yaml:"options"`
+	Provider string
+	Options  map[string]string
 }
 
 type ProviderCollection struct {
-	Git                ProviderConfiguration `yaml:"git"`
-	ContainerArtifacts ProviderConfiguration `yaml:"container_artifacts"`
-	ContainerRuntime   ProviderConfiguration `yaml:"container_runtime"`
-	Configuration      ProviderConfiguration `yaml:"configuration"`
-	Secrets            ProviderConfiguration `yaml:"secrets"`
+	Git                ProviderConfiguration `mapstructure:"git" yaml:"git"`
+	ContainerArtifacts ProviderConfiguration `mapstructure:"container_artifacts" yaml:"container_artifacts"`
+	ContainerRuntime   ProviderConfiguration `mapstructure:"container_runtime" yaml:"container_runtime"`
+	Configuration      ProviderConfiguration `mapstructure:"configuration" yaml:"configuration"`
+	Secrets            ProviderConfiguration `mapstructure:"secrets" yaml:"secrets"`
+}
+
+type SoloProjectConfiguration struct {
+	Name       string `mapstructure:"name" yaml:"name"`
+	RootFolder string `mapstructure:"root_folder" yaml:"root_folder"`
 }
 
 type Configuration struct {
-	Providers ProviderCollection `yaml:"providers"`
+	Providers ProviderCollection       `mapstructure:"providers" yaml:"providers"`
+	Project   SoloProjectConfiguration `mapstructure:"project" yaml:"project"`
 }
 
 func loadLocalConfiguration() (*viper.Viper, error) {
@@ -48,6 +54,8 @@ func loadProjectConfiguration() (*viper.Viper, error) {
 	if projectFolder != "" {
 		log.Println("Loading project configuration")
 		v := viper.New()
+		v.SetDefault("project.name", filepath.Base(projectFolder))
+		v.Set("project.root_folder", projectFolder)
 		projectConfigPath := filepath.Join(projectFolder, ".solo", "config.yml")
 		v.SetConfigFile(projectConfigPath)
 		v.ReadInConfig()

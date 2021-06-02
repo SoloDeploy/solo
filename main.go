@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/SoloDeploy/solo/cmd"
@@ -16,6 +17,8 @@ func main() {
 	}
 	// TODO: register dependency in inject object graph instead of passing it down the execution tree
 
+	fmt.Printf("Name: %v\n", configuration.Project.Name)
+	fmt.Printf("RootFolder: %v\n", configuration.Project.RootFolder)
 	command := cmd.NewCmdSolo(configuration)
 
 	if err := command.Execute(); err != nil {
