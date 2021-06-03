@@ -1,10 +1,10 @@
 package configuration
 
 import (
-	"log"
 	"path/filepath"
 
 	"github.com/SoloDeploy/solo/core/filesystem"
+	"github.com/SoloDeploy/solo/core/output"
 	"github.com/SoloDeploy/solo/core/project"
 	"github.com/spf13/viper"
 )
@@ -39,7 +39,7 @@ func loadLocalConfiguration() (*viper.Viper, error) {
 	}
 
 	// the config file exists, load it
-	log.Println("Loading local configuration")
+	output.PrintlnLog("Loading local configuration")
 	v := viper.New()
 	v.SetConfigFile(localConfigPath)
 	v.ReadInConfig()
@@ -52,7 +52,7 @@ func loadProjectConfiguration() (*viper.Viper, error) {
 		return nil, err
 	}
 	if projectFolder != "" {
-		log.Println("Loading project configuration")
+		output.PrintlnLog("Loading project configuration")
 		v := viper.New()
 		v.SetDefault("project.name", filepath.Base(projectFolder))
 		v.Set("project.root_folder", projectFolder)
@@ -65,7 +65,7 @@ func loadProjectConfiguration() (*viper.Viper, error) {
 }
 
 func LoadConfiguration() (configuration *Configuration, err error) {
-	log.Printf("Loading configuration")
+	output.PrintlnLog("Loading configuration")
 
 	v, err := loadLocalConfiguration()
 	if err != nil {

@@ -39,19 +39,19 @@ func initialiseProvider(provider *configuration.ProviderConfiguration, downloadP
 	defer wg.Done()
 	if provider != nil && len(provider.Provider) > 0 {
 		if isUrl(provider.Provider) {
-			fmt.Printf("Downloading Provider from %v\n", provider.Provider)
+			output.FPrintlnLog("Downloading Provider from %v", provider.Provider)
 			err = network.DownloadFile(provider.Provider, downloadPath)
 			return
 		}
 		if exists, err := filesystem.FileExists(provider.Provider); exists && err == nil {
-			fmt.Printf("Copying Provider from absolute path %v\n", provider.Provider)
+			output.FPrintlnLog("Copying Provider from absolute path %v", provider.Provider)
 			err = filesystem.CopyFile(provider.Provider, downloadPath)
 			if err != nil {
-				output.PrintError(err)
+				output.PrintlnError(err)
 			}
 			return err
 		}
-		fmt.Printf("Provider not a URL or a local file: %v\n", provider.Provider)
+		output.FPrintlnError("Provider not a URL or a local file: %v", provider.Provider)
 	}
 	return
 }
@@ -79,7 +79,7 @@ func GetProvidersFolder() (providerPath string, err error) {
 	// TODO: find providers folder in project folder
 	providerPath, err = filepath.Abs(filepath.Join(".solo", "providers"))
 	if _, err := os.Stat(providerPath); os.IsNotExist(err) {
-		output.PrintfWarn("Creating new Solo Providers local directory at %v", providerPath)
+		output.FPrintlnInfo("Creating new Solo Providers local directory at %v", providerPath)
 		err = os.MkdirAll(providerPath, fs.ModePerm)
 	}
 	return

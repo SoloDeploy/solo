@@ -7,24 +7,34 @@ import (
 )
 
 var (
-	PrintInfo   = printInColor(color.Blue)
-	PrintWarn   = printInColor(color.Yellow)
-	PrintError  = printInColor(color.Red)
-	PrintfInfo  = printfInColor(color.Blue)
-	PrintfWarn  = printfInColor(color.Yellow)
-	PrintfError = printfInColor(color.Red)
+	PrintlnLog    = printlnInColor(color.New(color.FgBlack, color.Faint).PrintfFunc())
+	PrintlnInfo   = printlnInColor(nil)
+	PrintlnWarn   = printlnInColor(color.Yellow)
+	PrintlnError  = printlnInColor(color.Red)
+	FPrintlnLog   = fPrintlnInColor(color.New(color.FgBlack, color.Faint).PrintfFunc())
+	FPrintlnInfo  = fPrintlnInColor(nil)
+	FPrintlnWarn  = fPrintlnInColor(color.Yellow)
+	FPrintlnError = fPrintlnInColor(color.Red)
 )
 
-func printInColor(color func(string, ...interface{})) func(...interface{}) {
+func printlnInColor(color func(string, ...interface{})) func(...interface{}) {
 	printer := func(args ...interface{}) {
-		color(fmt.Sprint(args...))
+		if color != nil {
+			color(fmt.Sprintln(args...))
+		} else {
+			fmt.Println(args...)
+		}
 	}
 	return printer
 }
 
-func printfInColor(color func(string, ...interface{})) func(string, ...interface{}) {
+func fPrintlnInColor(color func(string, ...interface{})) func(string, ...interface{}) {
 	printer := func(format string, args ...interface{}) {
-		color(fmt.Sprintf(format, args...))
+		if color != nil {
+			color(fmt.Sprintln(fmt.Sprintf(format, args...)))
+		} else {
+			fmt.Println(fmt.Sprintf(format, args...))
+		}
 	}
 	return printer
 }

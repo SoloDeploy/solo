@@ -2,13 +2,14 @@ package project
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/SoloDeploy/solo/core/output"
 )
 
 func FindRootFolder() (string, error) {
-	log.Println("Looking for project directory")
+	output.PrintlnLog("Looking for project directory")
 	directoryUnderTest, err := os.Getwd()
 
 	for {
@@ -16,13 +17,13 @@ func FindRootFolder() (string, error) {
 
 		_, err = ioutil.ReadFile(configPath)
 		if err == nil {
-			log.Printf("Config file found. Project root folder at %v", directoryUnderTest)
+			output.FPrintlnLog("Config file found. Project root folder at %v", directoryUnderTest)
 			return directoryUnderTest, nil
 		}
 
 		parentPath := filepath.Dir(directoryUnderTest)
 		if parentPath == directoryUnderTest {
-			log.Println("No project directory found")
+			output.PrintlnLog("No project directory found")
 			return "", nil
 		}
 

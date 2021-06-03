@@ -1,7 +1,6 @@
 package init
 
 import (
-	"log"
 	"os"
 
 	"github.com/SoloDeploy/solo/core/configuration"
@@ -30,15 +29,15 @@ func NewCmdInit(configuration *configuration.Configuration) *cobra.Command {
 		Short: "Initialise the local environment",
 		Long:  long_description,
 		Run: func(cmd *cobra.Command, args []string) {
-			log.Printf("Initialising local project folder")
+			output.PrintlnLog("Initialising local project folder")
 			err := validate(configuration)
 			if err != nil {
-				output.PrintfError("Validation failed: %v", err)
+				output.FPrintlnError("Validation failed: %v", err)
 				os.Exit(1)
 			}
 			err = handler(configuration)
 			if err != nil {
-				output.PrintfError("Error initialising SoloDeploy project environment: %v", err)
+				output.FPrintlnError("Error initialising SoloDeploy project environment: %v", err)
 				os.Exit(1)
 			}
 			os.Exit(0)

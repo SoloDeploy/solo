@@ -3,12 +3,12 @@ package providers
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"time"
 
 	"github.com/SoloDeploy/solo/core/configuration"
+	"github.com/SoloDeploy/solo/core/output"
 	pb "github.com/SoloDeploy/solo/grpc/git"
 	"google.golang.org/grpc"
 )
@@ -36,8 +36,8 @@ func NewGitProvider(configuration *configuration.Configuration) (provider *GitPr
 		port: port,
 	}
 
-	log.Printf("Starting the Git Provider at port %v", port)
-	log.Printf("Provider Options:\n%v", configuration.Providers.Git.Options)
+	output.FPrintlnLog("Starting the Git Provider at port %v", port)
+	output.FPrintlnLog("Provider Options:\n%v", configuration.Providers.Git.Options)
 	gitProviderPath, err := GetProviderPath("git")
 	if err != nil {
 		return nil, err
@@ -52,17 +52,17 @@ func NewGitProvider(configuration *configuration.Configuration) (provider *GitPr
 		return
 	}
 
-	log.Println("Git Provider started")
+	output.PrintlnLog("Git Provider started")
 
 	// Set up a connection to the server.
 	url := fmt.Sprint("localhost:", provider.port)
-	log.Printf("Opening connection to %v", url)
+	output.FPrintlnLog("Opening connection to %v", url)
 	conn, err := grpc.Dial(url, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		return nil, err
 	}
 	provider.connection = conn
-	log.Printf("Creating gRPC client")
+	output.PrintlnLog("Creating gRPC client")
 	provider.client = pb.NewGitProviderClient(conn)
 	return
 }

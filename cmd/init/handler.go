@@ -1,9 +1,8 @@
 package init
 
 import (
-	"log"
-
 	"github.com/SoloDeploy/solo/core/configuration"
+	"github.com/SoloDeploy/solo/core/output"
 	"github.com/SoloDeploy/solo/core/providers"
 )
 
@@ -18,6 +17,6 @@ func handler(configuration *configuration.Configuration) (err error) {
 	if err != nil {
 		return
 	}
-	log.Printf("Repositories: %v", names)
+	output.FPrintlnInfo("Repositories: %v", names)
 	return
 }
