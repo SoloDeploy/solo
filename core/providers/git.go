@@ -3,7 +3,6 @@ package providers
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"time"
 
@@ -27,6 +26,12 @@ type GitProvider struct {
 }
 
 func (provider *GitProvider) Close() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	_, err := provider.client.Close(ctx, &pb.CloseRequest{})
+	if err != nil {
+		output.FPrintlnWarn("Couldn't close Git Provider process:\n%v", err)
+	}
 	provider.connection.Close()
 }
 
@@ -45,8 +50,8 @@ func NewGitProvider(configuration *configuration.Configuration) (provider *GitPr
 
 	provider.cmd = exec.Command(gitProviderPath, "start", "-p", fmt.Sprint(port))
 	// TODO: process these streams to indicate where the logs are coming from
-	provider.cmd.Stdin = os.Stdin
-	provider.cmd.Stderr = os.Stderr
+	provider.cmd.Stdout = NewStreamWriter(output.FPrintLog, "[GitProvider]")
+	provider.cmd.Stderr = NewStreamWriter(output.FPrintLog, "[GitProvider]")
 	err = provider.cmd.Start()
 	if err != nil {
 		return

@@ -11,9 +11,13 @@ message GetRepositoryNamesResponse {
   repeated string names = 1;
 }
 
+message CloseRequest {}
+message CloseResponse {}
+
 service GitProvider {
   // rpc GetRepositoryNames(GetRepositoryNamesRequest) returns (stream GetRepositoryNamesResponse);
   rpc GetRepositoryNames(GetRepositoryNamesRequest) returns (GetRepositoryNamesResponse);
+  rpc Close(CloseRequest) returns (CloseResponse);
 }
 
 

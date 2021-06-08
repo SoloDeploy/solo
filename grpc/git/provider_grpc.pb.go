@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type GitProviderClient interface {
 	// rpc GetRepositoryNames(GetRepositoryNamesRequest) returns (stream GetRepositoryNamesResponse);
 	GetRepositoryNames(ctx context.Context, in *GetRepositoryNamesRequest, opts ...grpc.CallOption) (*GetRepositoryNamesResponse, error)
+	Close(ctx context.Context, in *CloseRequest, opts ...grpc.CallOption) (*CloseResponse, error)
 }
 
 type gitProviderClient struct {
@@ -39,12 +40,22 @@ func (c *gitProviderClient) GetRepositoryNames(ctx context.Context, in *GetRepos
 	return out, nil
 }
 
+func (c *gitProviderClient) Close(ctx context.Context, in *CloseRequest, opts ...grpc.CallOption) (*CloseResponse, error) {
+	out := new(CloseResponse)
+	err := c.cc.Invoke(ctx, "/git.GitProvider/Close", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GitProviderServer is the server API for GitProvider service.
 // All implementations must embed UnimplementedGitProviderServer
 // for forward compatibility
 type GitProviderServer interface {
 	// rpc GetRepositoryNames(GetRepositoryNamesRequest) returns (stream GetRepositoryNamesResponse);
 	GetRepositoryNames(context.Context, *GetRepositoryNamesRequest) (*GetRepositoryNamesResponse, error)
+	Close(context.Context, *CloseRequest) (*CloseResponse, error)
 	mustEmbedUnimplementedGitProviderServer()
 }
 
@@ -54,6 +65,9 @@ type UnimplementedGitProviderServer struct {
 
 func (UnimplementedGitProviderServer) GetRepositoryNames(context.Context, *GetRepositoryNamesRequest) (*GetRepositoryNamesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRepositoryNames not implemented")
+}
+func (UnimplementedGitProviderServer) Close(context.Context, *CloseRequest) (*CloseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Close not implemented")
 }
 func (UnimplementedGitProviderServer) mustEmbedUnimplementedGitProviderServer() {}
 
@@ -86,6 +100,24 @@ func _GitProvider_GetRepositoryNames_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GitProvider_Close_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GitProviderServer).Close(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/git.GitProvider/Close",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GitProviderServer).Close(ctx, req.(*CloseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GitProvider_ServiceDesc is the grpc.ServiceDesc for GitProvider service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -96,6 +128,10 @@ var GitProvider_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRepositoryNames",
 			Handler:    _GitProvider_GetRepositoryNames_Handler,
+		},
+		{
+			MethodName: "Close",
+			Handler:    _GitProvider_Close_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

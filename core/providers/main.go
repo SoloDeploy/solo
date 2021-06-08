@@ -35,25 +35,36 @@ func GetProviderPath(providerName string) (providerPath string, err error) {
 	return
 }
 
-func initialiseProvider(provider *configuration.ProviderConfiguration, downloadPath string, wg *sync.WaitGroup) (err error) {
-	defer wg.Done()
-	if provider != nil && len(provider.Provider) > 0 {
-		if isUrl(provider.Provider) {
-			output.FPrintlnLog("Downloading Provider from %v", provider.Provider)
-			err = network.DownloadFile(provider.Provider, downloadPath)
+type ProviderInit struct {
+	ProviderSource string
+	ProviderDest   string
+}
+
+func initialiseProvider(providerInit *ProviderInit) (err error) {
+	if len(providerInit.ProviderSource) > 0 {
+		if isUrl(providerInit.ProviderSource) {
+			output.FPrintlnLog("Downloading Provider from %v", providerInit.ProviderSource)
+			err = network.DownloadFile(providerInit.ProviderSource, providerInit.ProviderDest)
 			return
 		}
-		if exists, err := filesystem.FileExists(provider.Provider); exists && err == nil {
-			output.FPrintlnLog("Copying Provider from absolute path %v", provider.Provider)
-			err = filesystem.CopyFile(provider.Provider, downloadPath)
+		if exists, err := filesystem.FileExists(providerInit.ProviderSource); exists && err == nil {
+			output.FPrintlnLog("Copying Provider from absolute path %v", providerInit.ProviderSource)
+			err = filesystem.CopyFile(providerInit.ProviderSource, providerInit.ProviderDest)
 			if err != nil {
 				output.PrintlnError(err)
 			}
 			return err
 		}
-		output.FPrintlnError("Provider not a URL or a local file: %v", provider.Provider)
+		output.FPrintlnError("Provider not a URL or a local file: %v", providerInit.ProviderSource)
 	}
 	return
+}
+
+func addProviderInit(providersList []*ProviderInit, providerConfig *configuration.ProviderConfiguration, destinationPath string) []*ProviderInit {
+	if providerConfig != nil {
+		return append(providersList, &ProviderInit{providerConfig.Provider, destinationPath})
+	}
+	return providersList
 }
 
 func InitialiseProviders(config *configuration.Configuration) (err error) {
@@ -63,16 +74,41 @@ func InitialiseProviders(config *configuration.Configuration) (err error) {
 		return
 	}
 
+	providerInitList := make([]*ProviderInit, 0)
+	providerInitList = addProviderInit(providerInitList, &config.Providers.Git, ConstructProvidersPath(providerPath, "git"))
+	providerInitList = addProviderInit(providerInitList, &config.Providers.ContainerArtifacts, ConstructProvidersPath(providerPath, "container_artifacts"))
+	providerInitList = addProviderInit(providerInitList, &config.Providers.ContainerRuntime, ConstructProvidersPath(providerPath, "container_runtime"))
+	providerInitList = addProviderInit(providerInitList, &config.Providers.Configuration, ConstructProvidersPath(providerPath, "configuration"))
+	providerInitList = addProviderInit(providerInitList, &config.Providers.Secrets, ConstructProvidersPath(providerPath, "secrets"))
+
+	errorsOut := make(chan error, len(providerInitList))
+	wgDone := make(chan bool)
 	var wg sync.WaitGroup
-	wg.Add(5)
-	go initialiseProvider(&config.Providers.Git, ConstructProvidersPath(providerPath, "git"), &wg)
-	go initialiseProvider(&config.Providers.ContainerArtifacts, ConstructProvidersPath(providerPath, "container_artifacts"), &wg)
-	go initialiseProvider(&config.Providers.ContainerRuntime, ConstructProvidersPath(providerPath, "container_runtime"), &wg)
-	go initialiseProvider(&config.Providers.Configuration, ConstructProvidersPath(providerPath, "configuration"), &wg)
-	go initialiseProvider(&config.Providers.Secrets, ConstructProvidersPath(providerPath, "secrets"), &wg)
-	wg.Wait()
-	// TODO: handle errors from above async operations
-	return nil
+	wg.Add(len(providerInitList))
+	for _, providerInit := range providerInitList {
+		go func(providerInit *ProviderInit) {
+			defer wg.Done()
+			initErr := initialiseProvider(providerInit)
+			if initErr != nil {
+				errorsOut <- initErr
+			}
+		}(providerInit)
+	}
+
+	go func() {
+		wg.Wait()
+		close(wgDone)
+	}()
+
+	select {
+	case <-wgDone:
+		break
+	case err = <-errorsOut:
+		close(errorsOut)
+		return
+	}
+
+	return
 }
 
 func GetProvidersFolder() (providerPath string, err error) {
