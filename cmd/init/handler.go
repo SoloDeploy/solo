@@ -17,6 +17,6 @@ func handler(configuration *configuration.Configuration) (err error) {
 	if err != nil {
 		return
 	}
-	output.FPrintlnInfo("Repositories: %v", names)
+	output.PrintlnfInfo("Repositories: %v", names)
 	return
 }

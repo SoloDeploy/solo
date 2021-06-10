@@ -12,8 +12,16 @@ import (
 	"google.golang.org/grpc"
 )
 
+// Repository contains information about a Git repository.
 type Repository struct {
-	name string
+	// Name is the name of the Git repository
+	Name string
+	// HttpsUrl is the URL which can be used to clone the repository using the
+	// HTTPS protocol
+	HttpsUrl string
+	// SshUrl is the URL which can be used to clone the repository using the
+	// SSH protocol
+	SshUrl string
 }
 
 // GitProvider defines the abstraction wrapper for all functions to interact with
@@ -25,33 +33,39 @@ type GitProvider struct {
 	cmd        *exec.Cmd
 }
 
+// Close terminates the connection to the Git gRPC server.
 func (provider *GitProvider) Close() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	_, err := provider.client.Close(ctx, &pb.CloseRequest{})
 	if err != nil {
-		output.FPrintlnWarn("Couldn't close Git Provider process:\n%v", err)
+		output.PrintlnfWarn("Couldn't close Git Provider process:\n%v", err)
 	}
 	provider.connection.Close()
 }
 
+// NewGitProvider instantiates and returns a new GitProvider object by starting
+// the initialised GitProvider executable with a randomised port number to start
+// the gRPC server.
 func NewGitProvider(configuration *configuration.Configuration) (provider *GitProvider, err error) {
+	// TODO: throw an error if the git provider is not initialised in the providers folder
+	// TODO: throw an error if the provider is not compatible with this version of Solo
 	port := 5000 // TODO: randomise this
 	provider = &GitProvider{
 		port: port,
 	}
 
-	output.FPrintlnLog("Starting the Git Provider at port %v", port)
-	output.FPrintlnLog("Provider Options:\n%v", configuration.Providers.Git.Options)
+	output.PrintlnfLog("Starting the Git Provider at port %v", port)
+	output.PrintlnfLog("Provider Options:\n%v", configuration.Providers.Git.Options)
 	gitProviderPath, err := GetProviderPath("git")
 	if err != nil {
 		return nil, err
 	}
 
+	// TODO: pass in the provider options as flags
 	provider.cmd = exec.Command(gitProviderPath, "start", "-p", fmt.Sprint(port))
-	// TODO: process these streams to indicate where the logs are coming from
-	provider.cmd.Stdout = NewStreamWriter(output.FPrintLog, "[GitProvider]")
-	provider.cmd.Stderr = NewStreamWriter(output.FPrintLog, "[GitProvider]")
+	provider.cmd.Stdout = NewStreamWriter(output.PrintfLog, "[GitProvider]")
+	provider.cmd.Stderr = NewStreamWriter(output.PrintfLog, "[GitProvider]")
 	err = provider.cmd.Start()
 	if err != nil {
 		return
@@ -61,7 +75,7 @@ func NewGitProvider(configuration *configuration.Configuration) (provider *GitPr
 
 	// Set up a connection to the server.
 	url := fmt.Sprint("localhost:", provider.port)
-	output.FPrintlnLog("Opening connection to %v", url)
+	output.PrintlnfLog("Opening connection to %v", url)
 	conn, err := grpc.Dial(url, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		return nil, err
@@ -79,7 +93,7 @@ func (provider *GitProvider) GetAllRepositories() (repositories []Repository, er
 	return
 }
 
-// GetRepositoryNames returns a list of all the Git repository names.
+// GetRepositorNames returns a list of all the Git repository names.
 func (provider *GitProvider) GetRepositoryNames() (names []string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()

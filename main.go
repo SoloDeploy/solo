@@ -10,6 +10,8 @@ import (
 
 func main() {
 	configuration, err := configuration.LoadConfiguration()
+	output.PrintlnfLog("Project Name: %v", configuration.Project.Name)
+	output.PrintlnfLog("Project Root: %v", configuration.Project.RootFolder)
 	if err != nil {
 		output.PrintlnError(err)
 		os.Exit(1)

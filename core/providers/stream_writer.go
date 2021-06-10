@@ -5,12 +5,15 @@ import (
 	"io"
 )
 
+// StreamWriter writes a stream to a logging function and prefixes each line
+// with a prefix string. StreamWriter implements the io.Writer interface.
 type StreamWriter struct {
 	logFunction func(string, ...interface{})
 	prefix      string
 	buffer      *bytes.Buffer
 }
 
+// NewStreamWriter returns a newly initialised StreamWriter
 func NewStreamWriter(logFunction func(string, ...interface{}), prefix string) *StreamWriter {
 	return &StreamWriter{
 		logFunction: logFunction,

@@ -22,7 +22,8 @@ clone it.
 In either case the CLI downloads the correct Git Provider implementation, starts it,
 and tests that the connection to the remote Git server is authorised.`
 
-// NewCmdInit Go away linter
+// NewCmdInit is responsible for mapping validated commandline arguments to the command handler and
+// printing the commandline Stdout and Stderr.
 func NewCmdInit(configuration *configuration.Configuration) *cobra.Command {
 	c := &cobra.Command{
 		Use:   "init",
@@ -32,12 +33,12 @@ func NewCmdInit(configuration *configuration.Configuration) *cobra.Command {
 			output.PrintlnLog("Initialising local project folder")
 			err := validate(configuration)
 			if err != nil {
-				output.FPrintlnError("Validation failed: %v", err)
+				output.PrintlnfError("Validation failed: %v", err)
 				os.Exit(1)
 			}
 			err = handler(configuration)
 			if err != nil {
-				output.FPrintlnError("Error initialising SoloDeploy project environment: %v", err)
+				output.PrintlnfError("Error initialising SoloDeploy project environment: %v", err)
 				os.Exit(1)
 			}
 			os.Exit(0)

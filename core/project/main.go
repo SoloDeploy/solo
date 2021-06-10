@@ -8,6 +8,9 @@ import (
 	"github.com/SoloDeploy/solo/core/output"
 )
 
+// FindRootFolder traverses the current folder hierarchy to look for a project
+// configuration file (`./.solo/config.yml`). If found it returns the path to
+// the project folder, otherwise it returns an empty string.
 func FindRootFolder() (string, error) {
 	output.PrintlnLog("Looking for project directory")
 	directoryUnderTest, err := os.Getwd()
@@ -17,7 +20,7 @@ func FindRootFolder() (string, error) {
 
 		_, err = ioutil.ReadFile(configPath)
 		if err == nil {
-			output.FPrintlnLog("Config file found. Project root folder at %v", directoryUnderTest)
+			output.PrintlnLog("Project directory found")
 			return directoryUnderTest, nil
 		}
 

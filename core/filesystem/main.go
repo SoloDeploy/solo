@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// FileExists returns true if a file exists at `path`
 func FileExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
@@ -19,6 +20,7 @@ func FileExists(path string) (bool, error) {
 	return true, nil
 }
 
+// CopyFile copies a local file from the `src` location to the `dest` location
 func CopyFile(src, dest string) error {
 	sourceFileStat, err := os.Stat(src)
 	if err != nil {

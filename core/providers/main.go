@@ -20,6 +20,8 @@ func isUrl(url string) bool {
 	return r.MatchString(url)
 }
 
+// ConstructProvidersPath takes in the provider folder path and the provider name and
+// returns the combined file path with a `.exe` extension if on Windows.
 func ConstructProvidersPath(providersFolderPath string, providerName string) string {
 	suffix := ""
 	if runtime.GOOS == "windows" {
@@ -28,6 +30,7 @@ func ConstructProvidersPath(providersFolderPath string, providerName string) str
 	return filepath.Join(providersFolderPath, fmt.Sprintf("%v%v", providerName, suffix))
 }
 
+// GetProviderPath returns the path to the executable for a specific named provider
 func GetProviderPath(providerName string) (providerPath string, err error) {
 	if providersFolderPath, err := GetProvidersFolder(); err == nil {
 		providerPath = ConstructProvidersPath(providersFolderPath, providerName)
@@ -35,38 +38,42 @@ func GetProviderPath(providerName string) (providerPath string, err error) {
 	return
 }
 
-type ProviderInit struct {
+type providerInit struct {
 	ProviderSource string
 	ProviderDest   string
 }
 
-func initialiseProvider(providerInit *ProviderInit) (err error) {
-	if len(providerInit.ProviderSource) > 0 {
-		if isUrl(providerInit.ProviderSource) {
-			output.FPrintlnLog("Downloading Provider from %v", providerInit.ProviderSource)
-			err = network.DownloadFile(providerInit.ProviderSource, providerInit.ProviderDest)
+func initialiseProvider(p *providerInit) (err error) {
+	if len(p.ProviderSource) > 0 {
+		// TODO: check if it starts with `solo-providers-` and replace with the correct GitHub release artifact
+		if isUrl(p.ProviderSource) {
+			output.PrintlnfLog("Downloading Provider from %v", p.ProviderSource)
+			err = network.DownloadFile(p.ProviderSource, p.ProviderDest)
 			return
 		}
-		if exists, err := filesystem.FileExists(providerInit.ProviderSource); exists && err == nil {
-			output.FPrintlnLog("Copying Provider from absolute path %v", providerInit.ProviderSource)
-			err = filesystem.CopyFile(providerInit.ProviderSource, providerInit.ProviderDest)
+		// TODO: make this work with relative paths
+		if exists, err := filesystem.FileExists(p.ProviderSource); exists && err == nil {
+			output.PrintlnfLog("Copying Provider from absolute path %v", p.ProviderSource)
+			err = filesystem.CopyFile(p.ProviderSource, p.ProviderDest)
 			if err != nil {
 				output.PrintlnError(err)
 			}
 			return err
 		}
-		output.FPrintlnError("Provider not a URL or a local file: %v", providerInit.ProviderSource)
+		output.PrintlnfError("Provider not a URL or a local file: %v", p.ProviderSource)
 	}
 	return
 }
 
-func addProviderInit(providersList []*ProviderInit, providerConfig *configuration.ProviderConfiguration, destinationPath string) []*ProviderInit {
+func addProviderInit(providersList []*providerInit, providerConfig *configuration.ProviderConfiguration, destinationPath string) []*providerInit {
 	if providerConfig != nil {
-		return append(providersList, &ProviderInit{providerConfig.Provider, destinationPath})
+		return append(providersList, &providerInit{providerConfig.Provider, destinationPath})
 	}
 	return providersList
 }
 
+// InitialiseProviders downloads or copies all the Solo Providers found in the configuration
+// to the Providers directory.
 func InitialiseProviders(config *configuration.Configuration) (err error) {
 	providerPath, err := GetProvidersFolder()
 
@@ -74,10 +81,10 @@ func InitialiseProviders(config *configuration.Configuration) (err error) {
 		return
 	}
 
-	providerInitList := make([]*ProviderInit, 0)
+	providerInitList := make([]*providerInit, 0)
 	providerInitList = addProviderInit(providerInitList, &config.Providers.Git, ConstructProvidersPath(providerPath, "git"))
-	providerInitList = addProviderInit(providerInitList, &config.Providers.ContainerArtifacts, ConstructProvidersPath(providerPath, "container_artifacts"))
-	providerInitList = addProviderInit(providerInitList, &config.Providers.ContainerRuntime, ConstructProvidersPath(providerPath, "container_runtime"))
+	providerInitList = addProviderInit(providerInitList, &config.Providers.DeployerArtifacts, ConstructProvidersPath(providerPath, "deployer_artifacts"))
+	providerInitList = addProviderInit(providerInitList, &config.Providers.DeployerRuntime, ConstructProvidersPath(providerPath, "deployer_runtime"))
 	providerInitList = addProviderInit(providerInitList, &config.Providers.Configuration, ConstructProvidersPath(providerPath, "configuration"))
 	providerInitList = addProviderInit(providerInitList, &config.Providers.Secrets, ConstructProvidersPath(providerPath, "secrets"))
 
@@ -85,14 +92,14 @@ func InitialiseProviders(config *configuration.Configuration) (err error) {
 	wgDone := make(chan bool)
 	var wg sync.WaitGroup
 	wg.Add(len(providerInitList))
-	for _, providerInit := range providerInitList {
-		go func(providerInit *ProviderInit) {
+	for _, p := range providerInitList {
+		go func(p *providerInit) {
 			defer wg.Done()
-			initErr := initialiseProvider(providerInit)
+			initErr := initialiseProvider(p)
 			if initErr != nil {
 				errorsOut <- initErr
 			}
-		}(providerInit)
+		}(p)
 	}
 
 	go func() {
@@ -111,11 +118,14 @@ func InitialiseProviders(config *configuration.Configuration) (err error) {
 	return
 }
 
+// GetProviderPath returns the path to the folder where the provider executables have
+// been initialised. In project folders it would be `${project}/.solo/providers` and in
+// Git repositories it would be in `./.solo/providers`.
 func GetProvidersFolder() (providerPath string, err error) {
 	// TODO: find providers folder in project folder
 	providerPath, err = filepath.Abs(filepath.Join(".solo", "providers"))
 	if _, err := os.Stat(providerPath); os.IsNotExist(err) {
-		output.FPrintlnInfo("Creating new Solo Providers local directory at %v", providerPath)
+		output.PrintlnfInfo("Creating new Solo Providers local directory at %v", providerPath)
 		err = os.MkdirAll(providerPath, fs.ModePerm)
 	}
 	return
