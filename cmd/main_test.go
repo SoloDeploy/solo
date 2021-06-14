@@ -1,9 +1,14 @@
-package solo
+package cmd
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/SoloDeploy/solo/core/configuration"
+)
 
 func TestNewCmdSolo(t *testing.T) {
-	cmd := NewCmdSolo()
+	configuration := configuration.Configuration{}
+	cmd := NewCmdSolo(&configuration)
 
 	if cmd.Use != "solo" {
 		t.Errorf("Use is not correct")
