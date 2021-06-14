@@ -22,18 +22,8 @@ import (
 var configFile string
 
 var (
-	shortened  = false
-	output     = "json"
-	versionCmd = &cobra.Command{
-		Use:   "version",
-		Short: "Version will output the current build information",
-		Long:  ``,
-		Run: func(_ *cobra.Command, _ []string) {
-			resp := goVersion.FuncWithOutput(shortened, version, commit, date, output)
-			fmt.Print(resp)
-			return
-		},
-	}
+	shortened = false
+	output    = "json"
 )
 
 // NewCmdSolo Go away linter
@@ -47,6 +37,17 @@ func NewCmdSolo(version string, commit string, date string) *cobra.Command {
 				cmd.Help()
 				os.Exit(0)
 			}
+		},
+	}
+
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Version will output the current build information",
+		Long:  ``,
+		Run: func(_ *cobra.Command, _ []string) {
+			resp := goVersion.FuncWithOutput(shortened, version, commit, date, output)
+			fmt.Print(resp)
+			return
 		},
 	}
 
