@@ -8,6 +8,12 @@ import (
 	"github.com/SoloDeploy/solo/core/output"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
 	configuration, err := configuration.LoadConfiguration()
 	output.PrintlnfLog("Project Name: %v", configuration.Project.Name)
@@ -18,7 +24,7 @@ func main() {
 	}
 	// TODO: register dependency in inject object graph instead of passing it down the execution tree
 
-	command := cmd.NewCmdSolo(configuration)
+	command := cmd.NewCmdSolo(configuration, version, commit, date)
 
 	if err := command.Execute(); err != nil {
 		output.PrintlnError(err)
