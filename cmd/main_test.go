@@ -8,7 +8,7 @@ import (
 
 func TestNewCmdSolo(t *testing.T) {
 	configuration := configuration.Configuration{}
-	cmd := NewCmdSolo(&configuration, "version", "commit", "date")
+	cmd := NewCmdSolo(&configuration, "0.0.0", "commitid", "date")
 
 	if cmd.Use != "solo" {
 		t.Errorf("Use is not correct")
