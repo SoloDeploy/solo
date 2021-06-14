@@ -7,8 +7,14 @@ import (
 	solo "github.com/SoloDeploy/solo/cmd"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
-	command := solo.NewCmdSolo()
+	command := solo.NewCmdSolo(version, commit, date)
 
 	if err := command.Execute(); err != nil {
 		fmt.Println(err)

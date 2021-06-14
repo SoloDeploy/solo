@@ -23,9 +23,6 @@ var configFile string
 
 var (
 	shortened  = false
-	version    = "dev"
-	commit     = "none"
-	date       = "unknown"
 	output     = "json"
 	versionCmd = &cobra.Command{
 		Use:   "version",
@@ -40,7 +37,7 @@ var (
 )
 
 // NewCmdSolo Go away linter
-func NewCmdSolo() *cobra.Command {
+func NewCmdSolo(version string, commit string, date string) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:                   "solo",
 		DisableFlagsInUseLine: true,
