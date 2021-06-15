@@ -14,10 +14,9 @@ import (
 	"github.com/SoloDeploy/solo/cmd/promote"
 	"github.com/SoloDeploy/solo/cmd/publish"
 	"github.com/SoloDeploy/solo/cmd/verify"
+	vers "github.com/SoloDeploy/solo/cmd/version"
 	"github.com/SoloDeploy/solo/core/configuration"
 )
-
-var configFile string
 
 // NewCmdSolo Go away linter
 func NewCmdSolo(configuration *configuration.Configuration, version string, commit string, date string) *cobra.Command {
@@ -42,6 +41,7 @@ func NewCmdSolo(configuration *configuration.Configuration, version string, comm
 	rootCmd.AddCommand(promote.NewCmdPromote())
 	rootCmd.AddCommand(publish.NewCmdPublish())
 	rootCmd.AddCommand(verify.NewCmdVerify())
+	rootCmd.AddCommand(vers.NewCmdVersion(version, commit, date))
 
 	return rootCmd
 }
