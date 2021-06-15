@@ -35,6 +35,3 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
-includes:
-  - from_file:
-      path: LICENSE
